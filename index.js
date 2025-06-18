@@ -29,7 +29,7 @@ app.use(express.json());
 const getMemoryFile = (nsfw) => nsfw ? "./memory_nsfw.json" : "./memory_safe.json";
 
 // ✅ Load all OpenRouter API keys from keys.json
-const apiKeys = JSON.parse(fs.readFileSync("./keys.json")).keys;
+const apiKeys = process.env.OPENROUTER_KEYS.split(",").map(k => k.trim());
 let currentKeyIndex = 0;
 
 // ✅ Load memory (chat history)
