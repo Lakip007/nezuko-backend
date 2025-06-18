@@ -29,7 +29,9 @@ app.use(express.json());
 const getMemoryFile = (nsfw) => nsfw ? "./memory_nsfw.json" : "./memory_safe.json";
 
 // ✅ Load all OpenRouter API keys from keys.json
-const apiKeys = process.env.OPENROUTER_KEYS.split(",").map(k => k.trim());
+const apiKeys = process.env.API_KEYS?.split(",") || [];
+console.log("✅ Loaded", apiKeys.length, "API keys");
+
 let currentKeyIndex = 0;
 
 // ✅ Load memory (chat history)
@@ -76,10 +78,12 @@ const askNezuko = async (messages, nsfw, shouldUseNickname, nickname) => {
         "https://openrouter.ai/api/v1/chat/completions",
         requestData,
         {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
+         headers: {
+  Authorization: `Bearer ${apiKey}`,
+  "Content-Type": "application/json",
+  "HTTP-Referer": "https://nezuko-ai.render.com",
+  "X-Title": "Nezuko AI Chat",
+},
         },
       );
 
@@ -163,7 +167,7 @@ app.post("/generate", async (req, res) => {
     const trimmedHistory = chatHistory.slice(-10);
 
     // ✅ NOW safe to use shouldUseNickname
-    console,log("shouldUseNickname =", shouldUseNickname);
+    console.log("shouldUseNickname =", shouldUseNickname);
     const reply = await askNezuko(trimmedHistory, nsfw, shouldUseNickname, nickname);
 
     chatHistory.push({ role: "assistant", content: reply });
