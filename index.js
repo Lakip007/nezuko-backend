@@ -294,5 +294,5 @@ exec(`python3 stt.py "${wavPath}"`, { timeout: 30000 }, (error, stdout, stderr) 
 app.use('/audio', express.static(path.join(__dirname, 'public/audio')));
 // ✅ Start the server
 app.listen(PORT, () => {
-console.log(🌸 Nezuko server running on port ${PORT});
+console.log(`🌸 Nezuko server running on port ${PORT}`);
 });
