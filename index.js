@@ -9,10 +9,9 @@ import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
 import pkg from "uuid";
-import ttsPkg from 'google-tts-api';
+import googleTTS from 'google-tts-api';
 
 const { v4: uuidv4 } = pkg;
-const { getAudioUrl } = ttsPkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -307,7 +306,7 @@ app.post('/tts', async (req, res) => {
   if (!text) return res.status(400).json({ error: "No text provided" });
 
   try {
-    const url = getAudioUrl(text, {
+    const url = googleTTS(text, {
       lang: 'en',
       slow: false,
       host: 'https://translate.google.com',
