@@ -310,10 +310,10 @@ app.post('/tts', async (req, res) => {
 
   try {
     // ✅ Generate TTS audio URL
-    const url = googleTTS.getAudioUrl(text, {
-      lang: 'en',
+    const url = await googleTTS(text, {
+      lang: "en",
       slow: false,
-      host: 'https://translate.google.com',
+      host: "https://translate.google.com",
     });
 
     // ✅ Download the audio file
