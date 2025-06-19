@@ -56,7 +56,7 @@ JSON.stringify(data, null, 2),
 const askNezuko = async (messages, nsfw, shouldUseNickname, nickname) => {
 
 const nicknameLine = nickname
-? His nickname is "${nickname}". ✅ Use it only at the start of the first message of the day, or if he calls your name or flirts. ❌ Do not repeat it in every reply.
+? `His nickname is "${nickname}". ✅ Use it only at the start of the first message of the day, or if he calls your name or flirts. ❌ Do not repeat it in every reply.`
 : "";
 
 const systemPrompt = (nsfw
