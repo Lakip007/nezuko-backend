@@ -8,8 +8,10 @@ import multer from "multer";
 import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
-import { v4 as uuidv4 } from "uuid";
+import pkg from "uuid";
 import * as googleTTS from 'google-tts-api';
+
+const { v4: uuidv4 } = pkj;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
