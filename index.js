@@ -138,69 +138,71 @@ throw new Error("❌ All API keys exhausted due to rate limits.");
 
 // ✅ Generate route with OpenAI-style messages
 app.post("/generate", async (req, res) => {
-const { messages, nsfw, nickname } = req.body;
+  const { messages, nsfw, nickname } = req.body;
 
-if (!messages || !Array.isArray(messages)) {
-return res.status(400).json({ error: "Messages are required." });
-}
+  if (!messages || !Array.isArray(messages)) {
+    return res.status(400).json({ error: "Messages are required." });
+  }
 
-try {
-let memoryData = loadMemory(nsfw);
-if (nickname && nickname !== memoryData.nickname) {
-  memoryData.nickname = nickname;
-}
-        
-const chatHistory = memoryData.chat_history || [];
-const lastUseDate = memoryData.lastNicknameUse || null;
+  try {
+    // ✅ Load existing memory
+    let memoryData = loadMemory(nsfw);
+    const chatHistory = memoryData.chat_history || [];
+    const lastUseDate = memoryData.lastNicknameUse || null;
 
-// ✅ Always define it first!        
-let shouldUseNickname = false;        
-    
-const today = new Date().toISOString().slice(0, 10);        
-const userContent = messages[messages.length - 1]?.content.toLowerCase();        
-    
-if (today !== lastUseDate) {        
-  shouldUseNickname = true;        
-  memoryData.lastNicknameUse = today;        
-} else if (/nezuko|babe|baby|cutie|love/.test(userContent)) {        
-  shouldUseNickname = true;        
-}        
-    
-let prompt = "";        
-for (const msg of messages) {        
-  if (msg.role === "system") {        
-    prompt += `${msg.content}\n`;        
-  } else if (msg.role === "user") {        
-    prompt += `User: ${msg.content}\n`;        
-  } else if (msg.role === "assistant") {        
-    prompt += `Nezuko: ${msg.content}\n`;        
-  }        
-}        
-    
-chatHistory.push({ role: "user", content: prompt });        
-const trimmedHistory = chatHistory.slice(-10);        
-    
-// ✅ NOW safe to use shouldUseNickname        
-console.log("shouldUseNickname =", shouldUseNickname);        
-const reply = await askNezuko(trimmedHistory, nsfw, shouldUseNickname, nickname);        
-    
-chatHistory.push({ role: "assistant", content: reply });        
-memoryData.chat_history = chatHistory;        
-saveMemory(memoryData, nsfw);        
-    
-res.json({ reply });
+    // ✅ Inject new nickname from frontend (overwrite if changed)
+    if (nickname && nickname !== memoryData.nickname) {
+      console.log(`🔁 Updating nickname from memory (${memoryData.nickname}) → new (${nickname})`);
+      memoryData.nickname = nickname;
+    }
 
-} catch (error) {
-console.error("❌ Nezuko error:", error.message);
-let errorMessage = "Failed to get reply from Nezuko.";
+    // ✅ Decide if nickname should be used this time
+    let shouldUseNickname = false;
+    const today = new Date().toISOString().slice(0, 10);
+    const userContent = messages[messages.length - 1]?.content.toLowerCase();
 
-if (error.response && error.response.data) {        
-  errorMessage += `Server said: ${JSON.stringify(error.response.data)}`;        
-}        
-    
-res.status(500).json({ error: errorMessage });
+    if (today !== lastUseDate) {
+      shouldUseNickname = true;
+      memoryData.lastNicknameUse = today;
+    } else if (/nezuko|babe|baby|cutie|love/.test(userContent)) {
+      shouldUseNickname = true;
+    }
 
-}
+    // ✅ Construct the prompt string
+    let prompt = "";
+    for (const msg of messages) {
+      if (msg.role === "system") {
+        prompt += `${msg.content}\n`;
+      } else if (msg.role === "user") {
+        prompt += `User: ${msg.content}\n`;
+      } else if (msg.role === "assistant") {
+        prompt += `Nezuko: ${msg.content}\n`;
+      }
+    }
+
+    chatHistory.push({ role: "user", content: prompt });
+    const trimmedHistory = chatHistory.slice(-10);
+
+    // ✅ Use askNezuko with updated memory nickname
+    console.log("shouldUseNickname =", shouldUseNickname);
+    const reply = await askNezuko(trimmedHistory, nsfw, shouldUseNickname, memoryData.nickname);
+
+    // ✅ Save updated memory with latest nickname
+    chatHistory.push({ role: "assistant", content: reply });
+    memoryData.chat_history = chatHistory;
+    saveMemory(memoryData, nsfw);
+
+    res.json({ reply });
+  } catch (error) {
+    console.error("❌ Nezuko error:", error.message);
+    let errorMessage = "Failed to get reply from Nezuko.";
+
+    if (error.response && error.response.data) {
+      errorMessage += ` Server said: ${JSON.stringify(error.response.data)}`;
+    }
+
+    res.status(500).json({ error: errorMessage });
+  }
 });
 const upload = multer({ dest: 'uploads/' });
 // Test endpoint for debugging
