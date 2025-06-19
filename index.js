@@ -9,8 +9,9 @@ import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
 import pkg from "uuid";
-import googleTTS from 'google-tts-api';
+import googleTTSModule from 'google-tts-api';
 
+const googleTTS = googleTTSModule.default;
 const { v4: uuidv4 } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -303,19 +304,20 @@ exec(`python3 stt.py "${wavPath}"`, { timeout: 30000 }, (error, stdout, stderr) 
 
 app.post('/tts', async (req, res) => {
   const { text } = req.body;
+
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: "No valid text provided" });
   }
 
   try {
-    // ✅ Get TTS URL
+    // ✅ Generate TTS audio URL
     const url = googleTTS(text, {
-      lang: 'en',          // ✅ language must be a string
+      lang: 'en',
       slow: false,
       host: 'https://translate.google.com',
     });
 
-    // ✅ Save audio file locally
+    // ✅ Download the audio file
     const filename = `${uuidv4()}.mp3`;
     const filePath = path.join(__dirname, 'public/audio', filename);
 
@@ -329,12 +331,12 @@ app.post('/tts', async (req, res) => {
 
     writer.on('error', (err) => {
       console.error("TTS save error:", err);
-      res.status(500).json({ error: "TTS failed" });
+      res.status(500).json({ error: "TTS failed to save" });
     });
 
   } catch (err) {
-    console.error("TTS error:", err);
-    res.status(500).json({ error: "Text-to-speech failed" });
+    console.error("TTS error:", err.message);
+    res.status(500).json({ error: "TTS failed" });
   }
 });
 
