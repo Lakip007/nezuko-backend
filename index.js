@@ -9,7 +9,7 @@ import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
 import pkg from "uuid";
-import * as googleTTS from 'google-tts-api';
+import googleTTS from 'google-tts-api';
 
 const { v4: uuidv4 } = pkg;
 
