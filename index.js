@@ -339,6 +339,26 @@ app.post('/tts', async (req, res) => {
   }
 });
 
+app.get('/tts', async (req, res) => {
+  try {
+    const text = req.query.text;
+    const lang = req.query.lang || "en";
+
+    if (!text) return res.status(400).json({ error: "Missing ?text= parameter" });
+
+    const url = await googleTTS(text, {
+      lang,
+      slow: false,
+      host: 'https://translate.google.com',
+    });
+
+    res.json({ url });
+  } catch (err) {
+    console.error("🔴 TTS error:", err);
+    res.status(500).json({ error: "TTS generation failed" });
+  }
+});
+
 app.use('/audio', express.static(path.join(__dirname, 'public/audio')));
 // ✅ Start the server
 app.listen(PORT, () => {
