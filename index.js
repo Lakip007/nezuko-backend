@@ -145,7 +145,11 @@ return res.status(400).json({ error: "Messages are required." });
 }
 
 try {
-const memoryData = loadMemory(nsfw);
+let memoryData = loadMemory(nsfw);
+if (nickname && nickname !== memoryData.nickname) {
+  memoryData.nickname = nickname;
+}
+        
 const chatHistory = memoryData.chat_history || [];
 const lastUseDate = memoryData.lastNicknameUse || null;
 
