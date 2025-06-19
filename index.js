@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 import pkg from "uuid";
 import * as googleTTS from 'google-tts-api';
 
-const { v4: uuidv4 } = pkj;
+const { v4: uuidv4 } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
