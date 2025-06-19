@@ -231,7 +231,7 @@ fieldname: req.file.fieldname
 });
 
 const audioPath = req.file.path;
-const wavPath = ${audioPath}.wav;
+const wavPath = `${audioPath}.wav`;
 
 console.log("🔄 Converting audio to WAV format...");
 
