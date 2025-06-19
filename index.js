@@ -9,7 +9,7 @@ import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from "uuid";
-import googleTTS from 'google-tts-api'; // install with: npm i google-tts-api
+import * as googleTTS from 'google-tts-api';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
