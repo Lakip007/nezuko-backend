@@ -84,7 +84,7 @@ try {
     {        
      headers: {
 
-Authorization: Bearer ${apiKey},
+Authorization: `Bearer ${apiKey}`,
 "Content-Type": "application/json",
 "HTTP-Referer": "https://nezuko-ai.render.com",
 "X-Title": "Nezuko AI Chat",
@@ -125,7 +125,7 @@ msg.toLowerCase().includes("rate limit") ||
 msg.toLowerCase().includes("no auth credentials") ||
 err?.response?.status === 401
 ) {
-console.warn(🔁 API key ${i + 1} failed (rate limit or auth error), trying next...);
+console.warn(`🔁 API key ${i + 1} failed (rate limit or auth error), trying next...`);
 continue;
 } else {
 throw err; // Real error — don't rotate
@@ -191,7 +191,7 @@ console.error("❌ Nezuko error:", error.message);
 let errorMessage = "Failed to get reply from Nezuko.";
 
 if (error.response && error.response.data) {        
-  errorMessage += ` Server said: ${JSON.stringify(error.response.data)}`;        
+  errorMessage += `Server said: ${JSON.stringify(error.response.data)}`;        
 }        
     
 res.status(500).json({ error: errorMessage });
@@ -236,7 +236,7 @@ const wavPath = ${audioPath}.wav;
 console.log("🔄 Converting audio to WAV format...");
 
 // Convert audio to WAV format
-exec( ffmpeg -i "${audioPath}" -ar 16000 -ac 1 -sample_fmt s16 -f wav "${wavPath}", (convertError, convertStdout, convertStderr) => {
+exec(`ffmpeg -i "${audioPath}" -ar 16000 -ac 1 -sample_fmt s16 -f wav "${wavPath}"`, (convertError, convertStdout, convertStderr) => {
 console.log("🔍 FFmpeg stdout:", convertStdout);
 console.log("🔍 FFmpeg stderr:", convertStderr);
 
