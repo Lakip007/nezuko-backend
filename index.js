@@ -9,9 +9,8 @@ import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
 import pkg from "uuid";
-import googleTTSModule from 'google-tts-api';
+import googleTTS from 'google-tts-api';
 
-const googleTTS = googleTTSModule.default;
 const { v4: uuidv4 } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -311,7 +310,7 @@ app.post('/tts', async (req, res) => {
 
   try {
     // ✅ Generate TTS audio URL
-    const url = googleTTS(text, {
+    const url = googleTTS.getAudioUrl(text, {
       lang: 'en',
       slow: false,
       host: 'https://translate.google.com',
