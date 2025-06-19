@@ -303,16 +303,19 @@ exec(`python3 stt.py "${wavPath}"`, { timeout: 30000 }, (error, stdout, stderr) 
 
 app.post('/tts', async (req, res) => {
   const { text } = req.body;
-  if (!text) return res.status(400).json({ error: "No text provided" });
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({ error: "No valid text provided" });
+  }
 
   try {
-    const url = await googleTTS(text, {
-      lang: 'en',
+    // ✅ Get TTS URL
+    const url = googleTTS(text, {
+      lang: 'en',          // ✅ language must be a string
       slow: false,
       host: 'https://translate.google.com',
     });
 
-    // Optionally download & serve from your own server
+    // ✅ Save audio file locally
     const filename = `${uuidv4()}.mp3`;
     const filePath = path.join(__dirname, 'public/audio', filename);
 
