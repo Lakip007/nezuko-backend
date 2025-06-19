@@ -17,6 +17,7 @@
     "express": "^5.1.0",
     "ffmpeg-static": "^5.2.0",
     "fs": "^0.0.1-security",
+    "google-tts-api": "^0.0.6",
     "gtts": "^0.2.1",
     "multer": "^2.0.1",
     "path": "^0.12.7"
