@@ -8,6 +8,8 @@ import multer from "multer";
 import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
+import { v4 as uuidv4 } from "uuid";
+import googleTTS from 'google-tts-api'; // install with: npm i google-tts-api
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -295,6 +297,40 @@ exec(`python3 stt.py "${wavPath}"`, { timeout: 30000 }, (error, stdout, stderr) 
 });
 
 });
+});
+
+app.post('/tts', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.status(400).json({ error: "No text provided" });
+
+  try {
+    const url = googleTTS.getAudioUrl(text, {
+      lang: 'en',
+      slow: false,
+      host: 'https://translate.google.com',
+    });
+
+    // Optionally download & serve from your own server
+    const filename = `${uuidv4()}.mp3`;
+    const filePath = path.join(__dirname, 'public/audio', filename);
+
+    const writer = fs.createWriteStream(filePath);
+    const axiosRes = await axios({ url, method: 'GET', responseType: 'stream' });
+    axiosRes.data.pipe(writer);
+
+    writer.on('finish', () => {
+      res.json({ audioUrl: `/audio/${filename}` });
+    });
+
+    writer.on('error', (err) => {
+      console.error("TTS save error:", err);
+      res.status(500).json({ error: "TTS failed" });
+    });
+
+  } catch (err) {
+    console.error("TTS error:", err);
+    res.status(500).json({ error: "Text-to-speech failed" });
+  }
 });
 
 app.use('/audio', express.static(path.join(__dirname, 'public/audio')));
