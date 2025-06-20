@@ -9,7 +9,6 @@ import { exec } from "child_process";
 import path from "path";
 import { fileURLToPath } from 'url';
 import pkg from "uuid";
-import googleTTS from 'google-tts-api';
 
 const { v4: uuidv4 } = pkg;
 
@@ -263,7 +262,8 @@ console.log("✅ Audio converted to WAV");
     
 // Now process with Vosk        
 console.log("🔄 Starting speech recognition...");        
-exec(`python3 stt.py "${wavPath}"`, { timeout: 30000 }, (error, stdout, stderr) => {        
+const userLang = req.headers['x-lang'] || 'en';
+exec(`python3 stt.py "${wavPath}" "${userLang}"`, { timeout: 30000 }, (error, stdout, stderr) => {        
   console.log("🔍 Python stdout:", stdout);        
   console.log("🔍 Python stderr:", stderr);        
     
@@ -301,65 +301,12 @@ exec(`python3 stt.py "${wavPath}"`, { timeout: 30000 }, (error, stdout, stderr) 
 });
 });
 
-app.post('/tts', async (req, res) => {
-  const { text } = req.body;
-
-  if (!text || typeof text !== 'string') {
-    return res.status(400).json({ error: "No valid text provided" });
-  }
-
-  try {
-    // ✅ Generate TTS audio URL
-    const url = await googleTTS(text, {
-      lang: "en",
-      slow: false,
-      host: "https://translate.google.com",
-    });
-
-    // ✅ Download the audio file
-    const filename = `${uuidv4()}.mp3`;
-    const filePath = path.join(__dirname, 'public/audio', filename);
-
-    const writer = fs.createWriteStream(filePath);
-    const axiosRes = await axios({ url, method: 'GET', responseType: 'stream' });
-    axiosRes.data.pipe(writer);
-
-    writer.on('finish', () => {
-      res.json({ audioUrl: `/audio/${filename}` });
-    });
-
-    writer.on('error', (err) => {
-      console.error("TTS save error:", err);
-      res.status(500).json({ error: "TTS failed to save" });
-    });
-
-  } catch (err) {
-    console.error("TTS error:", err.message);
-    res.status(500).json({ error: "TTS failed" });
-  }
-});
-
-app.get('/tts', async (req, res) => {
-  try {
-    const text = req.query.text;
-    const lang = req.query.lang || "en";
-
-    if (!text) return res.status(400).json({ error: "Missing ?text= parameter" });
-
-    const url = await googleTTS(text, {
-      lang,
-      slow: false,
-      host: 'https://translate.google.com',
-    });
-
-    res.json({ url });
-  } catch (err) {
-    console.error("🔴 TTS error:", err);
-    res.status(500).json({ error: "TTS generation failed" });
-  }
-});
-
 app.use('/audio', express.static(path.join(__dirname, 'public/audio')));
+
+app.get("/ping", (req, res) => {
+  res.send("🔄 Nezuko backend is alive");
+});
+
 // ✅ Start the server
 app.listen(PORT, () => {
 console.log(`🌸 Nezuko server running on port ${PORT}`);
