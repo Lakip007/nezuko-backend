@@ -262,7 +262,7 @@ console.log("✅ Audio converted to WAV");
     
 // Now process with Vosk        
 console.log("🔄 Starting speech recognition...");        
-const userLang = req.headers['x-lang'] || 'en';
+const userLang = req.headers['x-user-lang'] || 'en';
 exec(`python3 stt.py "${wavPath}" "${userLang}"`, { timeout: 30000 }, (error, stdout, stderr) => {        
   console.log("🔍 Python stdout:", stdout);        
   console.log("🔍 Python stderr:", stderr);        
