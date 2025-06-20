@@ -9,59 +9,52 @@ def main():
     try:
         print("🔍 Starting speech recognition...", file=sys.stderr)
 
-        if len(sys.argv) < 2:
-            print("Error: No audio file path provided", file=sys.stderr)
+        if len(sys.argv) < 3:
+            print("Error: Provide <audio_path> <language_code>", file=sys.stderr)
             sys.exit(1)
 
         audio_path = sys.argv[1]
+        lang_code = sys.argv[2]
+
         print(f"🎵 Audio file: {audio_path}", file=sys.stderr)
+        print(f"🌐 Language code: {lang_code}", file=sys.stderr)
 
         if not os.path.exists(audio_path):
             print(f"Error: Audio file not found: {audio_path}", file=sys.stderr)
             sys.exit(1)
 
-        # Check file size
-        file_size = os.path.getsize(audio_path)
-        print(f"📁 File size: {file_size} bytes", file=sys.stderr)
+        # Language to model folder mapping
+        models = {
+            "en": "vosk-model-small-en-us-0.15",
+            "hi": "vosk-model-small-hi-0.22",
+            "ja": "vosk-model-small-ja-0.22",
+            "es": "vosk-model-small-es-0.42",
+            "fr": "vosk-model-small-fr-0.22",
+        }
 
-        if file_size == 0:
-            print("Error: Audio file is empty", file=sys.stderr)
-            sys.exit(1)
+        model_folder = models.get(lang_code, models["en"])  # fallback to English
+        model_path = os.path.join("models", model_folder)
 
-        # Check if model exists
-        model_path = "model"
         if not os.path.exists(model_path):
-            print(f"Error: Model directory not found: {model_path}", file=sys.stderr)
+            print(f"❌ Model folder not found: {model_path}", file=sys.stderr)
             sys.exit(1)
 
         print("📦 Loading Vosk model...", file=sys.stderr)
         model = Model(model_path)
-        print("✅ Model loaded successfully", file=sys.stderr)
+        print("✅ Model loaded", file=sys.stderr)
 
-        print("🎧 Opening audio file...", file=sys.stderr)
         wf = wave.open(audio_path, "rb")
-
-        # Validate audio format
         rate = wf.getframerate()
+
         if rate != 16000:
-            print(f"Warning: Sample rate is {rate}, expected 16000", file=sys.stderr)
+            print(f"⚠️ Sample rate = {rate}, expected 16000", file=sys.stderr)
 
         if wf.getnchannels() != 1:
-            print(f"Warning: Audio has {wf.getnchannels()} channels, expected 1", file=sys.stderr)
-
-        duration = wf.getnframes() / rate
-        print(f"⏱️ Duration: {duration:.2f} seconds", file=sys.stderr)
-
-        if duration < 0.1:
-            print("Error: Audio too short for transcription", file=sys.stderr)
-            wf.close()
-            sys.exit(1)
+            print(f"⚠️ Audio has {wf.getnchannels()} channels, expected mono", file=sys.stderr)
 
         rec = KaldiRecognizer(model, rate)
 
         results = []
-        print("🔄 Processing audio...", file=sys.stderr)
-
         while True:
             data = wf.readframes(4000)
             if len(data) == 0:
@@ -70,21 +63,18 @@ def main():
                 result = json.loads(rec.Result())
                 if result.get("text", "").strip():
                     results.append(result["text"].strip())
-                    print(f"📝 Partial: {result['text']}", file=sys.stderr)
 
         final = json.loads(rec.FinalResult())
         if final.get("text", "").strip():
             results.append(final["text"].strip())
-            print(f"📝 Final: {final['text']}", file=sys.stderr)
 
         full_text = " ".join(results).strip()
-        print(f"✅ Complete transcription: '{full_text}'", file=sys.stderr)
-
-        print(full_text)  # Send result to stdout for Node.js
+        print(f"✅ Transcription: {full_text}", file=sys.stderr)
+        print(full_text)
 
     except Exception as e:
-        print(f"Error in speech recognition: {str(e)}", file=sys.stderr)
-        print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+        print(f"❌ Error in STT: {str(e)}", file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":
